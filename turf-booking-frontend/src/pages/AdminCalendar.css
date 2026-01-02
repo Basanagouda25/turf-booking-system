@@ -1,0 +1,72 @@
+/* ===== CALENDAR WRAPPER ===== */
+.admin-calendar {
+  background: #ffffff;
+  padding: 24px;
+  border-radius: 14px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+}
+
+/* ===== REACT CALENDAR BASE ===== */
+.react-calendar {
+  border: none;
+  width: 100%;
+  font-family: inherit;
+}
+
+/* ===== NAVIGATION ===== */
+.react-calendar__navigation {
+  margin-bottom: 16px;
+}
+
+.react-calendar__navigation button {
+  font-size: 16px;
+  font-weight: 600;
+  color: #0a7c2f;
+}
+
+/* ===== WEEKDAYS ===== */
+.react-calendar__month-view__weekdays {
+  text-align: center;
+  font-weight: 600;
+  color: #555;
+}
+
+/* ===== DAY TILES ===== */
+.react-calendar__tile {
+  padding: 14px 6px;
+  border-radius: 10px;
+  transition: all 0.2s ease;
+}
+
+.react-calendar__tile:enabled:hover {
+  background: #e8f5ec;
+}
+
+/* ===== TODAY ===== */
+.react-calendar__tile--now {
+  background: #f1f8f4;
+  border: 1px solid #0a7c2f;
+}
+
+/* ===== SELECTED ===== */
+.react-calendar__tile--active {
+  background: #0a7c2f !important;
+  color: #fff;
+}
+
+/* ===== BOOKINGS BADGE ===== */
+.booking-badge {
+  margin-top: 4px;
+  font-size: 11px;
+  color: #0a7c2f;
+  font-weight: 600;
+}
+
+/* ===== DAY DETAILS CARD ===== */
+.day-details {
+  margin-top: 30px;
+  padding: 24px;
+  border-radius: 14px;
+  background: #ffffff;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
+}
