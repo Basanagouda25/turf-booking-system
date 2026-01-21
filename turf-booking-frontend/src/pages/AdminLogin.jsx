@@ -2,6 +2,16 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api/axios";
 
+/* ===== COLOR TOKENS (MATCH OTHER AUTH SCREENS) ===== */
+const DARK_BG = "#0f1115";
+const CARD_BG = "#161a22";
+const TEXT = "#e6e6e6";
+const MUTED = "#9aa0a6";
+const ACCENT = "#0a7c2f";
+const BORDER = "#2a2f3a";
+const ERROR_BG = "#3b1d1d";
+const ERROR_TEXT = "#ffb4ab";
+
 export default function AdminLogin() {
   const navigate = useNavigate();
 
@@ -36,64 +46,22 @@ export default function AdminLogin() {
 
   return (
     <>
-      {/* BLUR BACKGROUND */}
-      <div
-        style={{
-          position: "fixed",
-          inset: 0,
-          backgroundColor: "rgba(0,0,0,0.45)",
-          backdropFilter: "blur(6px)",
-          zIndex: 1000,
-        }}
-      />
+      {/* ===== BLUR BACKGROUND ===== */}
+      <div style={overlay} />
 
-      {/* ADMIN LOGIN MODAL */}
-      <div
-        style={{
-          position: "fixed",
-          top: "50%",
-          left: "50%",
-          transform: "translate(-50%, -50%)",
-          width: "92%",
-          maxWidth: "420px",
-          backgroundColor: "#fff",
-          borderRadius: "12px",
-          padding: "26px",
-          zIndex: 1001,
-          boxShadow: "0 12px 32px rgba(0,0,0,0.3)",
-        }}
-      >
-        {/* BACK BUTTON */}
-        <button
-          onClick={() => navigate("/")}
-          style={{
-            background: "none",
-            border: "none",
-            color: "#0a7c2f",
-            fontSize: "14px",
-            cursor: "pointer",
-            marginBottom: "10px",
-          }}
-        >
+      {/* ===== ADMIN LOGIN CARD ===== */}
+      <div style={card}>
+        {/* BACK */}
+        <button onClick={() => navigate("/")} style={backBtn}>
           ← Back
         </button>
 
-        <h2 style={{ textAlign: "center", marginBottom: "18px" }}>
-          Admin Login
-        </h2>
+        <h2 style={title}>Admin Login</h2>
+        <p style={subtitle}>Restricted access for administrators</p>
 
         {/* ERROR */}
         {error && (
-          <div
-            style={{
-              backgroundColor: "#fdecea",
-              color: "#b71c1c",
-              padding: "10px",
-              borderRadius: "6px",
-              marginBottom: "14px",
-              fontSize: "14px",
-            }}
-          >
+          <div style={errorBox}>
             {error}
           </div>
         )}
@@ -106,54 +74,23 @@ export default function AdminLogin() {
             value={mobile}
             required
             onChange={(e) => setMobile(e.target.value)}
-            style={{
-              width: "100%",
-              padding: "12px",
-              marginBottom: "14px",
-              borderRadius: "8px",
-              border: "1px solid #ccc",
-              fontSize: "14px",
-              boxSizing: "border-box",
-            }}
+            style={input}
           />
 
           {/* PASSWORD */}
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              border: "1px solid #ccc",
-              borderRadius: "8px",
-              padding: "0 10px",
-              marginBottom: "20px",
-            }}
-          >
+          <div style={passwordBox}>
             <input
               type={showPassword ? "text" : "password"}
               placeholder="Password"
               value={password}
               required
               onChange={(e) => setPassword(e.target.value)}
-              style={{
-                flex: 1,
-                padding: "12px 0",
-                border: "none",
-                outline: "none",
-                fontSize: "14px",
-              }}
+              style={passwordInput}
             />
-
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              style={{
-                background: "none",
-                border: "none",
-                color: "#0a7c2f",
-                cursor: "pointer",
-                fontSize: "13px",
-                fontWeight: "500",
-              }}
+              style={showBtn}
             >
               {showPassword ? "Hide" : "Show"}
             </button>
@@ -163,16 +100,7 @@ export default function AdminLogin() {
           <button
             type="submit"
             disabled={loading}
-            style={{
-              width: "100%",
-              padding: "12px",
-              backgroundColor: loading ? "#9ccc9c" : "#0a7c2f",
-              color: "#fff",
-              border: "none",
-              borderRadius: "8px",
-              cursor: loading ? "not-allowed" : "pointer",
-              fontSize: "16px",
-            }}
+            style={submitBtn(loading)}
           >
             {loading ? "Signing in..." : "Login"}
           </button>
@@ -181,3 +109,112 @@ export default function AdminLogin() {
     </>
   );
 }
+
+/* ================= STYLES ================= */
+
+const overlay = {
+  position: "fixed",
+  inset: 0,
+  background: "rgba(0,0,0,0.55)",
+  backdropFilter: "blur(8px)",
+  zIndex: 1000,
+};
+
+const card = {
+  position: "fixed",
+  top: "50%",
+  left: "50%",
+  transform: "translate(-50%, -50%)",
+  width: "92%",
+  maxWidth: "420px",
+  background: CARD_BG,
+  padding: "26px",
+  borderRadius: "14px",
+  zIndex: 1001,
+  border: `1px solid ${BORDER}`,
+  boxShadow: "0 20px 50px rgba(0,0,0,0.6)",
+  color: TEXT,
+};
+
+const backBtn = {
+  background: "none",
+  border: "none",
+  color: ACCENT,
+  cursor: "pointer",
+  fontWeight: 600,
+  marginBottom: "12px",
+};
+
+const title = {
+  textAlign: "center",
+  marginBottom: "6px",
+};
+
+const subtitle = {
+  textAlign: "center",
+  fontSize: "14px",
+  color: MUTED,
+  marginBottom: "18px",
+};
+
+const errorBox = {
+  background: ERROR_BG,
+  color: ERROR_TEXT,
+  padding: "10px",
+  borderRadius: "8px",
+  marginBottom: "14px",
+  fontSize: "14px",
+  textAlign: "center",
+};
+
+const input = {
+  width: "100%",
+  padding: "12px",
+  marginBottom: "14px",
+  borderRadius: "8px",
+  border: `1px solid ${BORDER}`,
+  background: DARK_BG,
+  color: TEXT,
+  fontSize: "14px",
+  boxSizing: "border-box",
+};
+
+const passwordBox = {
+  display: "flex",
+  alignItems: "center",
+  border: `1px solid ${BORDER}`,
+  borderRadius: "8px",
+  padding: "0 10px",
+  marginBottom: "20px",
+  background: DARK_BG,
+};
+
+const passwordInput = {
+  flex: 1,
+  padding: "12px 0",
+  border: "none",
+  outline: "none",
+  background: "transparent",
+  color: TEXT,
+};
+
+const showBtn = {
+  background: "none",
+  border: "none",
+  color: ACCENT,
+  cursor: "pointer",
+  fontSize: "13px",
+  fontWeight: 500,
+};
+
+const submitBtn = (loading) => ({
+  width: "100%",
+  padding: "12px",
+  background: loading ? "#245c3a" : ACCENT,
+  color: "#fff",
+  border: "none",
+  borderRadius: "8px",
+  cursor: loading ? "not-allowed" : "pointer",
+  fontSize: "16px",
+  fontWeight: 600,
+});

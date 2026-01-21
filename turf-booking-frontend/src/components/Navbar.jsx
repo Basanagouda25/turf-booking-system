@@ -1,13 +1,21 @@
-import { useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useTheme } from "./ThemeProvider";
 
 export default function Navbar() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { colors } = useTheme();
   const [open, setOpen] = useState(false);
 
   const token = localStorage.getItem("token");
   const user = JSON.parse(localStorage.getItem("user"));
   const role = user?.role;
+
+  // ✅ AUTO-CLOSE SIDEBAR ON ROUTE CHANGE
+  useEffect(() => {
+    setOpen(false);
+  }, [location.pathname]);
 
   const handleLogout = () => {
     localStorage.clear();
@@ -17,7 +25,7 @@ export default function Navbar() {
 
   return (
     <>
-      {/* ===== TOP BAR ===== */}
+      {/* ================= TOP BAR (TRANSPARENT) ================= */}
       <div
         style={{
           position: "fixed",
@@ -29,33 +37,32 @@ export default function Navbar() {
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
-          background: "transparent",
+          background: "rgba(0,0,0,0.35)",
+          backdropFilter: "blur(8px)",
+          WebkitBackdropFilter: "blur(8px)",
+          boxSizing: "border-box",
         }}
       >
-        {/* LOGO + TEXT */}
+        {/* LOGO (NON-CLICKABLE) */}
         <div
-          onClick={() => navigate("/")}
           style={{
             display: "flex",
             alignItems: "center",
-            gap: "8px",
-            cursor: "pointer",
+            gap: 8,
+            cursor: "default",
           }}
         >
           <img
             src="/turfs/Logo.jpg"
             alt="BS SportsZone"
-            style={{
-              width: "36px",
-              height: "36px",
-              objectFit: "contain",
-            }}
+            style={{ width: 36, height: 36, objectFit: "contain" }}
           />
           <span
             style={{
-              fontSize: "18px",
+              fontSize: 18,
               fontWeight: 700,
-              color: "#000",
+              color: "#ffffff",
+              whiteSpace: "nowrap",
             }}
           >
             BS_SportsZone
@@ -65,110 +72,132 @@ export default function Navbar() {
         {/* MENU BUTTON */}
         <button
           onClick={() => setOpen(true)}
+          title="Menu"
           style={{
             width: 40,
             height: 40,
             borderRadius: 8,
-            border: "none",
-            background: "rgba(0,0,0,0.55)",
-            color: "#fff",
-            fontSize: 20,
+            background: "rgba(255,255,255,0.12)",
+            color: "#ffffff",
+            border: "1px solid rgba(255,255,255,0.2)",
             cursor: "pointer",
+            fontSize: 20,
           }}
         >
           ☰
         </button>
       </div>
 
-      {/* ===== OVERLAY ===== */}
+      {/* ================= OVERLAY ================= */}
       {open && (
         <div
           onClick={() => setOpen(false)}
           style={{
             position: "fixed",
             inset: 0,
-            background: "rgba(0,0,0,0.4)",
+            background: "rgba(0,0,0,0.55)",
+            backdropFilter: "blur(4px)",
             zIndex: 999,
           }}
         />
       )}
 
-      {/* ===== SIDE DRAWER ===== */}
-      <div
-        style={{
-          position: "fixed",
-          top: "60px",
-          right: "12px",
-          width: "min(300px, 90%)",
-          background: "#fff",
-          zIndex: 1000,
-          padding: "18px",
-          borderRadius: "12px",
-          boxShadow: "-6px 0 20px rgba(0,0,0,0.2)",
-          transform: open ? "translateX(0)" : "translateX(120%)",
-          transition: "transform 0.3s ease",
-        }}
-      >
-        {/* HEADER */}
-        <div style={{ marginBottom: "12px", fontWeight: 700 }}>
-          Menu
+      {/* ================= SIDE DRAWER ================= */}
+      {open && (
+        <div
+          style={{
+            position: "fixed",
+            top: "64px",
+            right: "16px",
+            width: "min(320px, 92%)",
+            background: "#161a22",
+            zIndex: 1000,
+            padding: "18px",
+            borderRadius: "16px",
+            border: "1px solid #2a2f3a",
+            boxShadow: "0 20px 40px rgba(0,0,0,0.6)",
+            animation: "slideInRight 0.28s ease-out",
+          }}
+        >
+          <div
+            style={{
+              fontWeight: 700,
+              marginBottom: 12,
+              color: colors.text,
+            }}
+          >
+            Menu
+          </div>
+
+          {/* ===== GUEST ===== */}
+          {!token && (
+            <>
+              <NavItem text="Login" onClick={() => navigate("/login")} />
+              <NavItem text="Register" onClick={() => navigate("/register")} />
+              <NavItem
+                text="Admin Login"
+                onClick={() => navigate("/admin-login")}
+              />
+            </>
+          )}
+
+          {/* ===== USER ===== */}
+          {token && role === "USER" && (
+            <>
+              <small style={{ color: colors.muted }}>
+                Hi, {user?.name}
+              </small>
+              <NavItem text="Home" onClick={() => navigate("/")} />
+              <NavItem
+                text="My Bookings"
+                onClick={() => navigate("/my-bookings")}
+              />
+              <NavItem text="Profile" onClick={() => navigate("/profile")} />
+              <NavItem text="Logout" danger onClick={handleLogout} />
+            </>
+          )}
+
+          {/* ===== ADMIN ===== */}
+          {token && role === "ADMIN" && (
+            <>
+              <small style={{ color: colors.muted }}>Admin Panel</small>
+              <NavItem text="Dashboard" onClick={() => navigate("/admin")} />
+              <NavItem
+                text="Calendar"
+                onClick={() => navigate("/admin-calendar")}
+              />
+              <NavItem
+                text="Bookings"
+                onClick={() => navigate("/admin-bookings")}
+              />
+              <NavItem text="Logout" danger onClick={handleLogout} />
+            </>
+          )}
         </div>
-
-        {/* GUEST */}
-        {!token && (
-          <>
-            <NavItem text="Login" onClick={() => { setOpen(false); navigate("/login"); }} />
-            <NavItem text="Register" onClick={() => { setOpen(false); navigate("/register"); }} />
-            <NavItem
-              text="Admin Login"
-              onClick={() => { setOpen(false); navigate("/admin-login"); }}
-            />
-          </>
-        )}
-
-        {/* USER */}
-        {token && role === "USER" && (
-          <>
-            <small style={{ color: "#555" }}>Hi, {user?.name}</small>
-            <NavItem text="Home" onClick={() => { setOpen(false); navigate("/home"); }} />
-            <NavItem text="My Bookings" onClick={() => { setOpen(false); navigate("/my-bookings"); }} />
-            <NavItem text="Profile" onClick={() => { setOpen(false); navigate("/profile"); }} />
-            <NavItem text="Logout" danger onClick={handleLogout} />
-          </>
-        )}
-
-        {/* ADMIN */}
-        {token && role === "ADMIN" && (
-          <>
-            <small style={{ color: "#555" }}>Admin Panel</small>
-            <NavItem text="Dashboard" onClick={() => { setOpen(false); navigate("/admin"); }} />
-            <NavItem text="Calendar" onClick={() => { setOpen(false); navigate("/admin-calendar"); }} />
-            <NavItem text="Bookings" onClick={() => { setOpen(false); navigate("/admin-bookings"); }} />
-            <NavItem text="Logout" danger onClick={handleLogout} />
-          </>
-        )}
-      </div>
+      )}
     </>
   );
 }
 
-/* ===== MENU ITEM ===== */
+/* ================= NAV ITEM ================= */
 function NavItem({ text, onClick, danger }) {
+  const { colors } = useTheme();
+
   return (
     <button
       onClick={onClick}
       style={{
         width: "100%",
         padding: "10px 12px",
-        marginBottom: "8px",
+        marginBottom: 8,
         borderRadius: 8,
-        border: "none",
+        border: `1px solid ${colors.border}`,
+        background: danger ? "#402020" : colors.card,
+        color: danger ? "#ffb4b4" : colors.text,
         cursor: "pointer",
         fontSize: 14,
         fontWeight: 600,
         textAlign: "left",
-        background: danger ? "#ffecec" : "#f5f5f5",
-        color: danger ? "#b00020" : "#222",
       }}
     >
       {text}

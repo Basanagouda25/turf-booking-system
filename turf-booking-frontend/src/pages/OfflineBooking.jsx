@@ -4,6 +4,14 @@ import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import api from "../api/axios";
 
+/* ===== DARK THEME TOKENS ===== */
+const BG = "#0f1115";
+const CARD = "#1e2430";
+const TEXT = "#e6e6e6";
+const MUTED = "#9aa0a6";
+const ACCENT = "#0a7c2f";
+const BORDER = "#2a2f3a";
+
 export default function OfflineBooking() {
   const navigate = useNavigate();
 
@@ -11,14 +19,40 @@ export default function OfflineBooking() {
   const [turfId, setTurfId] = useState("");
   const [date, setDate] = useState("");
   const [slots, setSlots] = useState([]);
-  const [selectedSlot, setSelectedSlot] = useState(null);
-
+  const [startTime, setStartTime] = useState("");
+  const [endTime, setEndTime] = useState("");
   const [popup, setPopup] = useState(null);
 
   /* ================= LOAD TURFS ================= */
   useEffect(() => {
     api.get("/turfs").then((res) => setTurfs(res.data));
   }, []);
+
+  /* ================= HELPERS ================= */
+  const getHour = (t) => parseInt(t.split(":")[0]);
+
+  const getPriceForHour = (h) =>
+    h >= 18 || h < 6 ? 750 : 600;
+
+  const calculateAmount = () => {
+    if (!startTime || !endTime) return 0;
+
+    let total = 0;
+    let h = getHour(startTime);
+    const end = getHour(endTime);
+
+    while (h !== end) {
+      total += getPriceForHour(h);
+      h = (h + 1) % 24;
+    }
+    return total;
+  };
+
+  const formatAMPM = (time) => {
+    const h = getHour(time);
+    const hr = h % 12 || 12;
+    return `${hr}:00 ${h >= 12 ? "PM" : "AM"}`;
+  };
 
   /* ================= FETCH SLOTS ================= */
   const fetchSlots = async () => {
@@ -30,14 +64,40 @@ export default function OfflineBooking() {
     const res = await api.get(
       `/bookings/slots?turfId=${turfId}&date=${date}`
     );
-    setSlots(res.data);
-    setSelectedSlot(null);
+
+    setSlots(res.data.filter((s) => s.available));
+    setStartTime("");
+    setEndTime("");
   };
 
-  /* ================= CREATE OFFLINE BOOKING ================= */
+  /* ================= TIME OPTIONS ================= */
+  const startOptions = slots.map((s) => s.start);
+
+  const endOptions = (() => {
+    if (!startTime) return [];
+
+    const sorted = [...slots].sort(
+      (a, b) => getHour(a.start) - getHour(b.start)
+    );
+
+    const options = [];
+    let expected = (getHour(startTime) + 1) % 24;
+
+    for (let i = 0; i < 24; i++) {
+      const match = sorted.find(
+        (s) => getHour(s.end) === expected
+      );
+      if (!match) break;
+      options.push(match.end);
+      expected = (expected + 1) % 24;
+    }
+    return options;
+  })();
+
+  /* ================= CREATE BOOKING ================= */
   const createOfflineBooking = async () => {
-    if (!selectedSlot) {
-      showPopup("Please select a slot", "error");
+    if (!startTime || !endTime) {
+      showPopup("Select start & end time", "error");
       return;
     }
 
@@ -45,13 +105,12 @@ export default function OfflineBooking() {
       await api.post("/bookings/offline", {
         turfId,
         date,
-        startTime: selectedSlot.start,
-        endTime: selectedSlot.end,
+        startTime,
+        endTime,
         paymentMethod: "CASH",
       });
 
-      showPopup("Offline booking created successfully", "success");
-      setSelectedSlot(null);
+      showPopup("Offline booking created", "success");
       fetchSlots();
     } catch {
       showPopup("Slot already booked", "error");
@@ -65,42 +124,26 @@ export default function OfflineBooking() {
   };
 
   return (
-    <div>
+    <div style={{ background: BG, minHeight: "100vh", color: TEXT }}>
       <Navbar />
 
-      <div style={{ maxWidth: "900px", margin: "90px auto", padding: "20px" }}>
-        <button
-          onClick={() => navigate("/admin")}
-          style={{
-            marginBottom: "12px",
-            background: "none",
-            border: "none",
-            cursor: "pointer",
-            fontSize: "16px",
-            color: "#0a7c2f",
-            fontWeight: 600,
-          }}
-        >
+      <div style={container}>
+        <button onClick={() => navigate("/admin")} style={backBtn}>
           ← Back
         </button>
 
         <h2>Offline Booking</h2>
-        <p style={{ color: "#555", marginBottom: "20px" }}>
-          Admin-only booking with instant payment
+        <p style={{ color: MUTED, marginBottom: 20 }}>
+          Admin booking · Payment collected instantly
         </p>
 
-        {/* ===== FORM ===== */}
-        <div
-          style={{
-            display: "grid",
-            gap: "12px",
-            marginBottom: "20px",
-          }}
-        >
+        {/* FORM */}
+        <div style={card}>
+          <label style={label}>Select Turf</label>
           <select
             value={turfId}
             onChange={(e) => setTurfId(e.target.value)}
-            style={inputStyle}
+            style={input}
           >
             <option value="">Select Turf</option>
             {turfs.map((t) => (
@@ -110,90 +153,77 @@ export default function OfflineBooking() {
             ))}
           </select>
 
+          <label style={label}>Date</label>
           <input
             type="date"
             value={date}
             onChange={(e) => setDate(e.target.value)}
-            style={inputStyle}
+            style={{ ...input, boxSizing: "border-box" }}
           />
 
-          <button onClick={fetchSlots} style={primaryBtn}>
-            Check Available Slots
+          <button onClick={fetchSlots} style={btn}>
+            Check Availability
           </button>
-        </div>
 
-        {/* ===== SLOTS ===== */}
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))",
-            gap: "12px",
-          }}
-        >
-          {slots.map((slot, i) => {
-            const selected =
-              selectedSlot?.start === slot.start &&
-              selectedSlot?.end === slot.end;
-
-            return (
-              <div
-                key={i}
-                onClick={() => slot.available && setSelectedSlot(slot)}
-                style={{
-                  padding: "12px",
-                  borderRadius: "8px",
-                  border: selected
-                    ? "2px solid #0a7c2f"
-                    : "1px solid #ccc",
-                  background: slot.available
-                    ? selected
-                      ? "#e8f5ec"
-                      : "#fff"
-                    : "#f2f2f2",
-                  cursor: slot.available ? "pointer" : "not-allowed",
-                  opacity: slot.available ? 1 : 0.6,
-                  textAlign: "center",
-                }}
+          {slots.length > 0 && (
+            <>
+              <label style={label}>Start Time</label>
+              <select
+                value={startTime}
+                onChange={(e) => setStartTime(e.target.value)}
+                style={input}
               >
-                <strong>
-                  {slot.start} – {slot.end}
-                </strong>
-                <div style={{ fontSize: "13px", marginTop: "6px" }}>
-                  {slot.available ? "Available" : "Booked"}
-                </div>
-              </div>
-            );
-          })}
-        </div>
+                <option value="">Select</option>
+                {startOptions.map((t) => (
+                  <option key={t} value={t}>
+                    {formatAMPM(t)}
+                  </option>
+                ))}
+              </select>
 
-        {/* ===== ACTION ===== */}
-        <button
-          onClick={createOfflineBooking}
-          style={{
-            ...primaryBtn,
-            marginTop: "24px",
-            width: "100%",
-          }}
-        >
-          Create Offline Booking (Paid)
-        </button>
+              <label style={label}>End Time</label>
+              <select
+                value={endTime}
+                onChange={(e) => setEndTime(e.target.value)}
+                style={input}
+                disabled={!startTime}
+              >
+                <option value="">Select</option>
+                {endOptions.map((t) => (
+                  <option key={t} value={t}>
+                    {formatAMPM(t)}
+                  </option>
+                ))}
+              </select>
+
+              <div style={summary}>
+                <strong>Total Amount:</strong>{" "}
+                <span style={{ color: ACCENT }}>
+                  ₹ {calculateAmount()}
+                </span>
+              </div>
+
+              <button onClick={createOfflineBooking} style={btn}>
+                Create Offline Booking (Paid)
+              </button>
+            </>
+          )}
+        </div>
       </div>
 
-      {/* ===== POPUP ===== */}
+      {/* POPUP */}
       {popup && (
         <div
           style={{
             position: "fixed",
-            top: "20px",
-            right: "20px",
+            top: 20,
+            right: 20,
             background:
-              popup.type === "success" ? "#0a7c2f" : "#b00020",
+              popup.type === "success" ? ACCENT : "#b00020",
             color: "#fff",
-            padding: "14px 20px",
-            borderRadius: "8px",
-            boxShadow: "0 4px 10px rgba(0,0,0,0.2)",
-            zIndex: 2000,
-            fontSize: "14px",
+            padding: "12px 18px",
+            borderRadius: 8,
+            zIndex: 3000,
           }}
         >
           {popup.message}
@@ -205,21 +235,64 @@ export default function OfflineBooking() {
   );
 }
 
-/* ===== STYLES ===== */
-const inputStyle = {
-  padding: "10px",
-  borderRadius: "6px",
-  border: "1px solid #ccc",
-  fontSize: "14px",
+/* ================= STYLES ================= */
+const container = {
+  maxWidth: "420px",
+  margin: "0 auto",
+  padding: "120px 16px 40px",
+  background: BG,
 };
 
-const primaryBtn = {
+const card = {
+  background: CARD,
+  borderRadius: "16px",
+  padding: "20px",
+  border: `1px solid ${BORDER}`,
+};
+
+const label = {
+  display: "block",
+  marginTop: "16px",
+  marginBottom: "8px",
+  fontSize: "14px",
+  fontWeight: 600,
+  color: MUTED,
+};
+
+const input = {
+  width: "100%",
+  padding: "10px",
+  margin: "0 0 16px",
+  borderRadius: "8px",
+  border: `1px solid ${BORDER}`,
+  background: CARD,
+  color: TEXT,
+};
+
+const btn = {
+  width: "100%",
   padding: "12px",
-  backgroundColor: "#0a7c2f",
+  background: ACCENT,
   color: "#fff",
   border: "none",
-  borderRadius: "6px",
+  borderRadius: "8px",
   cursor: "pointer",
-  fontSize: "15px",
   fontWeight: 600,
+  marginBottom: "12px",
+};
+
+const backBtn = {
+  background: "none",
+  border: "none",
+  color: ACCENT,
+  fontWeight: 600,
+  cursor: "pointer",
+  marginBottom: "12px",
+};
+
+const summary = {
+  padding: "12px",
+  background: "#161a22",
+  borderRadius: "8px",
+  marginBottom: "16px",
 };

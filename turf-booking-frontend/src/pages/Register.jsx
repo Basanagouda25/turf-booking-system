@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import Navbar from "../components/Navbar";
 import api from "../api/axios";
 
 export default function Register() {
@@ -7,6 +8,7 @@ export default function Register() {
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [mobile, setMobile] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
@@ -15,12 +17,18 @@ export default function Register() {
   const handleRegister = async (e) => {
     e.preventDefault();
     setError("");
+
+    if (!/^[6-9]\d{9}$/.test(mobile)) {
+      return setError("Enter a valid 10-digit mobile number");
+    }
+
     setLoading(true);
 
     try {
       const res = await api.post("/users/register", {
         name: name.trim(),
         email: email.trim(),
+        mobile: mobile.trim(),
         password: password.trim(),
       });
 
@@ -38,13 +46,15 @@ export default function Register() {
 
   return (
     <>
-      {/* BLUR BACKGROUND (NO CLICK ACTION) */}
+      <Navbar />
+      
+      {/* BLUR BACKGROUND */}
       <div
         style={{
           position: "fixed",
           inset: 0,
-          backgroundColor: "rgba(0,0,0,0.45)",
-          backdropFilter: "blur(6px)",
+          backgroundColor: "rgba(0,0,0,0.6)",
+          backdropFilter: "blur(12px)",
           zIndex: 1000,
         }}
       />
@@ -57,43 +67,52 @@ export default function Register() {
           left: "50%",
           transform: "translate(-50%, -50%)",
           width: "92%",
-          maxWidth: "420px",
-          backgroundColor: "#fff",
-          borderRadius: "12px",
-          padding: "26px",
+          maxWidth: "400px",
+          background: "rgba(30, 34, 42, 0.8)", // Glass dark
+          backdropFilter: "blur(20px)",
+          border: "1px solid rgba(255, 255, 255, 0.1)",
+          borderRadius: "20px",
+          padding: "32px",
           zIndex: 1001,
-          boxShadow: "0 12px 32px rgba(0,0,0,0.3)",
+          boxShadow: "0 20px 50px rgba(0,0,0,0.5)",
+          color: "#e6e6e6",
         }}
       >
-        {/* BACK BUTTON */}
         <button
           onClick={() => navigate("/")}
           style={{
             background: "none",
             border: "none",
-            color: "#0a7c2f",
+            color: "#9aa0a6",
             fontSize: "14px",
             cursor: "pointer",
-            marginBottom: "10px",
+            marginBottom: "20px",
+            display: "flex",
+            alignItems: "center",
+            gap: "6px",
+            transition: "color 0.2s",
           }}
+          onMouseEnter={(e) => (e.currentTarget.style.color = "#fff")}
+          onMouseLeave={(e) => (e.currentTarget.style.color = "#9aa0a6")}
         >
-          ← Back
+          <span>←</span> Back
         </button>
 
-        <h2 style={{ textAlign: "center", marginBottom: "18px" }}>
+        <h2 style={{ textAlign: "center", marginBottom: "24px", fontSize: "24px", color: "#fff" }}>
           Create Account
         </h2>
 
-        {/* ERROR MESSAGE */}
         {error && (
           <div
             style={{
-              backgroundColor: "#fdecea",
-              color: "#b71c1c",
-              padding: "10px",
-              borderRadius: "6px",
-              marginBottom: "14px",
+              background: "rgba(220, 38, 38, 0.1)",
+              border: "1px solid rgba(220, 38, 38, 0.2)",
+              color: "#f87171",
+              padding: "12px",
+              borderRadius: "10px",
+              marginBottom: "20px",
               fontSize: "14px",
+              textAlign: "center",
             }}
           >
             {error}
@@ -101,119 +120,98 @@ export default function Register() {
         )}
 
         <form onSubmit={handleRegister}>
-          {/* NAME */}
-          <input
-            type="text"
-            placeholder="Full Name"
-            value={name}
-            required
-            onChange={(e) => setName(e.target.value)}
-            style={{
-              width: "100%",
-              padding: "12px",
-              marginBottom: "14px",
-              borderRadius: "8px",
-              border: "1px solid #ccc",
-              fontSize: "14px",
-              boxSizing: "border-box",
-            }}
-          />
+          <div style={inputGroup}>
+            <input
+              type="text"
+              placeholder="Full Name"
+              value={name}
+              required
+              onChange={(e) => setName(e.target.value)}
+              style={inputStyle}
+            />
+          </div>
 
-          {/* EMAIL */}
-          <input
-            type="email"
-            placeholder="Email"
-            value={email}
-            required
-            onChange={(e) => setEmail(e.target.value)}
-            style={{
-              width: "100%",
-              padding: "12px",
-              marginBottom: "14px",
-              borderRadius: "8px",
-              border: "1px solid #ccc",
-              fontSize: "14px",
-              boxSizing: "border-box",
-            }}
-          />
+          <div style={inputGroup}>
+            <input
+              type="email"
+              placeholder="Email"
+              value={email}
+              required
+              onChange={(e) => setEmail(e.target.value)}
+              style={inputStyle}
+            />
+          </div>
 
-          {/* PASSWORD */}
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              border: "1px solid #ccc",
-              borderRadius: "8px",
-              padding: "0 10px",
-              marginBottom: "20px",
-            }}
-          >
+          <div style={inputGroup}>
+            <input
+              type="tel"
+              placeholder="Mobile Number"
+              value={mobile}
+              required
+              maxLength={10}
+              onChange={(e) => setMobile(e.target.value.replace(/\D/g, ""))}
+              style={inputStyle}
+            />
+          </div>
+
+          <div style={{ ...inputGroup, position: "relative" }}>
             <input
               type={showPassword ? "text" : "password"}
               placeholder="Password"
               value={password}
               required
               onChange={(e) => setPassword(e.target.value)}
-              style={{
-                flex: 1,
-                padding: "12px 0",
-                border: "none",
-                outline: "none",
-                fontSize: "14px",
-              }}
+              style={{ ...inputStyle, paddingRight: "50px" }}
             />
-
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
               style={{
+                position: "absolute",
+                right: "12px",
+                top: "50%",
+                transform: "translateY(-50%)",
                 background: "none",
                 border: "none",
-                color: "#0a7c2f",
+                color: "#4ade80",
                 cursor: "pointer",
-                fontSize: "13px",
-                fontWeight: "500",
+                fontSize: "12px",
+                fontWeight: 600,
               }}
             >
-              {showPassword ? "Hide" : "Show"}
+              {showPassword ? "HIDE" : "SHOW"}
             </button>
           </div>
 
-          {/* REGISTER BUTTON */}
           <button
             type="submit"
             disabled={loading}
             style={{
               width: "100%",
-              padding: "12px",
-              backgroundColor: loading ? "#9ccc9c" : "#0a7c2f",
-              color: "#fff",
+              height: "48px",
+              marginTop: "12px",
+              background: loading
+                ? "#2a2f3a"
+                : "linear-gradient(135deg, #16a34a 0%, #0a7c2f 100%)",
               border: "none",
-              borderRadius: "8px",
+              borderRadius: "12px",
+              color: loading ? "#666" : "#fff",
+              fontWeight: 700,
+              fontSize: "15px",
               cursor: loading ? "not-allowed" : "pointer",
-              fontSize: "16px",
+              transition: "transform 0.1s ease, box-shadow 0.2s ease",
+              boxShadow: loading ? "none" : "0 4px 12px rgba(22, 163, 74, 0.3)",
             }}
           >
-            {loading ? "Creating account..." : "Register"}
+            {loading ? "Creating..." : "Register"}
           </button>
         </form>
 
-        {/* LOGIN LINK */}
-        <p
-          style={{
-            textAlign: "center",
-            marginTop: "16px",
-            fontSize: "14px",
-          }}
-        >
+        <p style={{ textAlign: "center", marginTop: "24px", fontSize: "14px", color: "#9aa0a6" }}>
           Already have an account?{" "}
           <span
-            style={{
-              color: "#0a7c2f",
-              cursor: "pointer",
-              fontWeight: "500",
-            }}
             onClick={() => navigate("/login")}
+            style={{ color: "#4ade80", cursor: "pointer", fontWeight: 600 }}
           >
             Login
           </span>
@@ -222,3 +220,22 @@ export default function Register() {
     </>
   );
 }
+
+/* ===== SHARED STYLES ===== */
+const inputGroup = {
+  marginBottom: "16px",
+};
+
+const inputStyle = {
+  width: "100%",
+  height: "48px",
+  padding: "0 16px",
+  borderRadius: "10px",
+  border: "1px solid rgba(255, 255, 255, 0.1)",
+  background: "#0f1115",
+  color: "#fff",
+  fontSize: "14px",
+  outline: "none",
+  transition: "border-color 0.2s",
+  boxSizing: "border-box",
+};

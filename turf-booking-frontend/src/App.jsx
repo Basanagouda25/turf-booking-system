@@ -15,16 +15,27 @@ import OfflineBooking from "./pages/OfflineBooking";
 
 import ProtectedRoute from "./components/ProtectedRoute";
 import AdminCalendar from "./pages/AdminCalendar";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
+
+import ScrollToTop from "./components/ScrollToTop";
+import BowlingMachine from "./pages/BowlingMachine";
+
 
 export default function App() {
   return (
     <BrowserRouter>
+      <ScrollToTop />
       <Routes>
         {/* Public */}
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/admin-login" element={<AdminLogin />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/bowling-machine" element={<BowlingMachine />} />
+
 
         {/* User */}
         <Route
@@ -92,13 +103,13 @@ export default function App() {
         />
 
         <Route
-  path="/admin-calendar"
-  element={
-    <ProtectedRoute adminOnly={true}>
-      <AdminCalendar />
-    </ProtectedRoute>
-  }
-/>
+          path="/admin-calendar"
+          element={
+            <ProtectedRoute adminOnly={true}>
+              <AdminCalendar />
+            </ProtectedRoute>
+          }
+        />
       </Routes>
     </BrowserRouter>
   );
