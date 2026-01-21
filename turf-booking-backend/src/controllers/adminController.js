@@ -20,9 +20,17 @@ exports.getRevenueStats = async (req, res) => {
     let todayHours = 0;
 
     bookings.forEach((b) => {
-      const hours =
-        parseInt(b.endTime.split(":")[0]) -
-        parseInt(b.startTime.split(":")[0]);
+      let hours = 0;
+
+      // FIX: Only calculate hours for GROUND bookings that have time slots
+      if (b.bookingCategory === "GROUND" && b.startTime && b.endTime) {
+        hours =
+          parseInt(b.endTime.split(":")[0]) -
+          parseInt(b.startTime.split(":")[0]);
+      }
+      
+      // Note: Bowling bookings (overs) will contribute 0 to hours, 
+      // but their revenue will still be counted correctly below.
 
       totalHours += hours;
 
@@ -52,7 +60,8 @@ exports.getRevenueStats = async (req, res) => {
       todayHours,
       totalHours,
     });
-  } catch {
+  } catch (err) {
+    console.error("ADMIN REVENUE ERROR:", err); // Log the actual error
     res.status(500).json({ message: "Failed to fetch revenue data" });
   }
 };

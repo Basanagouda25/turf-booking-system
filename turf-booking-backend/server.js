@@ -13,6 +13,8 @@ app.use("/api/users", require("./src/routes/userRoutes"));
 app.use("/api/admin", require("./src/routes/adminRoutes"));
 app.use("/api/turfs", require("./src/routes/turfRoutes"));
 app.use("/api/bookings", require("./src/routes/bookingRoutes"));
+app.use("/api/payments", require("./src/routes/paymentRoutes"));
+
 
 app.get("/", (req, res) => {
   res.send("Turf Booking API is running");

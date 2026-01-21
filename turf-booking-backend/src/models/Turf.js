@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const turfSchema = new mongoose.Schema(
   {
@@ -6,26 +6,41 @@ const turfSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    sports: [
-      {
-        type: String,
-        required: true,
-      },
-    ],
-    pricePerHour: {
+
+    type: {
+      type: String,
+      enum: ["GROUND", "BOWLING"],
+      required: true,
+    },
+
+    active: {
+      type: Boolean,
+      default: true,
+    },
+
+    // For grounds
+    dayPrice: {
       type: Number,
-      required: true,
+      default: 600,
     },
-    openingTime: {
-      type: String, // "06:00"
-      required: true,
+    nightPrice: {
+      type: Number,
+      default: 750,
     },
-    closingTime: {
-      type: String, // "23:00"
-      required: true,
+
+    // For bowling machine
+    bowlingPrices: {
+      tennis: {
+        type: Map,
+        of: Number, // overs -> price
+      },
+      leather: {
+        type: Map,
+        of: Number,
+      },
     },
   },
   { timestamps: true }
 );
 
-module.exports = mongoose.model('Turf', turfSchema);
+module.exports = mongoose.model("Turf", turfSchema,"turfs");
